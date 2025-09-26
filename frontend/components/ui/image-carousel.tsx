@@ -10,7 +10,6 @@ interface ImageCarouselProps {
 
 export function ImageCarousel({ images, alt, className }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isZoomed, setIsZoomed] = useState(false)
 
   if (images.length === 0) {
     return (
@@ -33,12 +32,8 @@ export function ImageCarousel({ images, alt, className }: ImageCarouselProps) {
           src={images[currentIndex] || "/placeholder.svg"}
           alt={alt}
           fill
-          unoptimized   // ✅ allow any domain
-          className={cn(
-            "object-cover transition-transform duration-500 cursor-zoom-in",
-            isZoomed ? "scale-150" : "scale-100 hover:scale-105",
-          )}
-          onClick={() => setIsZoomed(!isZoomed)}
+          unoptimized
+          className="object-contain w-full h-full" // ✅ fully fit, no zoom
         />
       </div>
 
@@ -51,7 +46,7 @@ export function ImageCarousel({ images, alt, className }: ImageCarouselProps) {
               onClick={() => setCurrentIndex(index)}
               className={cn(
                 "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-300",
-                index === currentIndex ? "border-pink-500 scale-105" : "border-transparent hover:border-pink-300",
+                index === currentIndex ? "border-pink-500" : "border-transparent hover:border-pink-300",
               )}
             >
               <Image
@@ -59,8 +54,8 @@ export function ImageCarousel({ images, alt, className }: ImageCarouselProps) {
                 alt={`${alt} ${index + 1}`}
                 width={64}
                 height={64}
-                unoptimized   // ✅ allow any domain
-                className="object-cover w-full h-full"
+                unoptimized
+                className="object-contain w-full h-full" // ✅ fully fit
               />
             </button>
           ))}

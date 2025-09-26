@@ -1,4 +1,6 @@
-// API utilities for backend integration
+// @ts-ignore
+import Cookies from "js-cookie"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 export interface ApiResponse<T = any> {
@@ -22,23 +24,7 @@ export class ApiError extends Error {
   }
 }
 
-// Token management
-export const tokenStorage = {
-  get: () => {
-    if (typeof window === "undefined") return null
-    return localStorage.getItem("auth_token")
-  },
-  set: (token: string) => {
-    if (typeof window === "undefined") return
-    localStorage.setItem("auth_token", token)
-  },
-  remove: () => {
-    if (typeof window === "undefined") return
-    localStorage.removeItem("auth_token")
-  },
-}
-
-// Admin Token management
+// Admin Token management (still using localStorage)
 const adminTokenStorage = {
   get: () => {
     if (typeof window === "undefined") return null
@@ -57,7 +43,13 @@ const adminTokenStorage = {
 // Base API client
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}, useAdminToken = false): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
-  const token = useAdminToken ? adminTokenStorage.get() : tokenStorage.get()
+
+  // Get token from cookies for users, localStorage for admin
+  const token = useAdminToken
+    ? adminTokenStorage.get()
+    : typeof window !== "undefined"
+    ? Cookies.get("token")
+    : null
 
   const config: RequestInit = {
     ...options,

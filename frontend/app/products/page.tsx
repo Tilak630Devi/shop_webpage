@@ -27,9 +27,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // SINGLE category
   const [selectedCategory, setSelectedCategory] = useState("");
-
   const [sortBy, setSortBy] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,58 +36,64 @@ export default function ProductsPage() {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
 
-  // Load ALL categories once (unfiltered) so the list never collapses
+  // Load all categories
   useEffect(() => {
     (async () => {
       try {
-        // If you have a dedicated categories API, call it here instead.
         const resp = await productsApi.list({
           page: 1,
-          limit: 100,       // bump if needed
+          limit: 100,
           sort: "newest",
         });
-        const unique = [...new Set(resp.items.map((p: Product) => p.category).filter(Boolean))];
+        const unique = [
+          ...new Set(
+            resp.items.map((p: Product) => p.category).filter(Boolean)
+          ),
+        ];
         setCategories(unique);
       } catch (e) {
         console.error("Failed to load categories:", e);
       }
     })();
   }, []);
-const fetchProducts = async () => {
-  try {
-    setIsLoading(true);
-    const response = await productsApi.list({
-      page: currentPage,
-      limit: 100, // fetch a bit more if filtering frontend
-      sort: sortBy,
-    });
 
-    // filter client-side
-    let filtered = response.items;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p: Product) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q)
-      );
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await productsApi.list({
+        page: currentPage,
+        limit: 100,
+        sort: sortBy,
+      });
+
+      let filtered = response.items;
+
+      // search filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(
+          (p: Product) =>
+            p.name.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q)
+        );
+      }
+
+      // category filter
+      if (selectedCategory) {
+        filtered = filtered.filter(
+          (p: Product) => p.category === selectedCategory
+        );
+      }
+
+      setProducts(filtered);
+      setTotalPages(Math.ceil(filtered.length / 12));
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    // category filter
-    if (selectedCategory) {
-      filtered = filtered.filter((p: Product) => p.category === selectedCategory);
-    }
-
-    setProducts(filtered);
-    setTotalPages(Math.ceil(filtered.length / 12)); // pagination fix
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -97,8 +101,8 @@ const fetchProducts = async () => {
   }, [currentPage, selectedCategory, sortBy, searchQuery]);
 
   const handleCategoryChange = (cat: string) => {
-    setSelectedCategory(cat); // single-select
-    setCurrentPage(1);        // reset pagination on filter change
+    setSelectedCategory(cat);
+    setCurrentPage(1);
   };
 
   const handleAddToCart = async (productId: string) => {
@@ -125,26 +129,33 @@ const fetchProducts = async () => {
               Our Collection
             </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover premium beauty products carefully curated for the modern woman
+              Discover premium beauty products carefully curated for the modern
+              woman
             </p>
           </div>
 
-          {/* Filters Row */}
+          {/* Filters */}
           <div className="mb-8">
             <ProductFilters
               categories={categories}
               selectedCategory={selectedCategory}
               onCategoryChange={handleCategoryChange}
               sortBy={sortBy}
-              onSortChange={(s) => { setSortBy(s); setCurrentPage(1); }}
+              onSortChange={(s) => {
+                setSortBy(s);
+                setCurrentPage(1);
+              }}
               searchQuery={searchQuery}
-              onSearchChange={(q) => { setSearchQuery(q); setCurrentPage(1); }}
+              onSearchChange={(q) => {
+                setSearchQuery(q);
+                setCurrentPage(1);
+              }}
             />
           </div>
 
-          {/* Products Grid */}
+          {/* Products */}
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(6)].map((_, i) => (
                 <GlassCard key={i} className="p-6 animate-pulse">
                   <div className="aspect-square bg-gray-200 rounded-lg mb-4" />
@@ -165,63 +176,77 @@ const fetchProducts = async () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {products.map((product) => (
-                  <GlassCard key={product._id} className="group hover-lift overflow-hidden">
-                    <div className="relative">
-                      <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100">
-                        {product.images?.[0] || product.image ? (
-                          <img
-                            src={product.images?.[0] || product.image || "/placeholder.svg"}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-gray-500">No Image</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+{products.map((product) => {
+  const discount = product.mrp > product.sellingPrice
+    ? Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100)
+    : 0;
 
-                    <div className="p-6">
-                      <span className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
-                        {product.category}
-                      </span>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
-                        {product.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {product.description}
-                      </p>
+  return (
+    <GlassCard key={product._id} className="overflow-hidden">
+      <div className="relative">
+        {/* Discount Badge */}
+        {discount > 0 && (
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg z-10">
+            {discount}% OFF
+          </div>
+        )}
 
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xl font-bold text-gray-800">
-                          ₹{product.sellingPrice}
-                        </span>
-                        {product.mrp > product.sellingPrice && (
-                          <span className="text-sm text-gray-500 line-through">
-                            ₹{product.mrp}
-                          </span>
-                        )}
-                      </div>
+        <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
+          {product.images?.[0] || product.image ? (
+            <img
+              src={product.images?.[0] || product.image || "/placeholder.svg"}
+              alt={product.name}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-gray-500">No Image</span>
+            </div>
+          )}
+        </div>
+      </div>
 
-                      <div className="flex gap-2">
-                        <Link href={`/products/${product.slug}`} className="flex-1">
-                          <GradientButton variant="secondary" className="w-full text-sm">
-                            View Details
-                          </GradientButton>
-                        </Link>
-                        <GradientButton
-                          onClick={() => handleAddToCart(product._id)}
-                          className="px-4 text-sm ripple"
-                        >
-                          Add to Cart
-                        </GradientButton>
-                      </div>
-                    </div>
-                  </GlassCard>
-                ))}
+      <div className="p-6">
+        <span className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
+          {product.category}
+        </span>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+          {product.name}
+        </h3>
+        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+          {product.description}
+        </p>
+
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xl font-bold text-gray-800">
+            ₹{product.sellingPrice}
+          </span>
+          {product.mrp > product.sellingPrice && (
+            <span className="text-sm text-gray-500 line-through">
+              ₹{product.mrp}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-2">
+          <Link href={`/products/${product.slug}`} className="flex-1">
+            <GradientButton variant="secondary" className="w-full text-xs sm:text-sm py-2">
+              View Details
+            </GradientButton>
+          </Link>
+          <GradientButton
+            onClick={() => handleAddToCart(product._id)}
+            className="w-full sm:w-auto px-3 sm:px-4 text-xs sm:text-sm py-2"
+          >
+            Add to Cart
+          </GradientButton>
+        </div>
+      </div>
+    </GlassCard>
+  );
+})}
+
               </div>
 
               {/* Pagination */}
@@ -229,7 +254,9 @@ const fetchProducts = async () => {
                 <div className="flex justify-center mt-12">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
                       disabled={currentPage === 1}
                       className="px-4 py-2 bg-white/20 border border-white/30 rounded-lg disabled:opacity-50 hover:bg-white/30 transition-all duration-300"
                     >
@@ -251,7 +278,9 @@ const fetchProducts = async () => {
                     ))}
 
                     <button
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      onClick={() =>
+                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      }
                       disabled={currentPage === totalPages}
                       className="px-4 py-2 bg-white/20 border border-white/30 rounded-lg disabled:opacity-50 hover:bg-white/30 transition-all duration-300"
                     >

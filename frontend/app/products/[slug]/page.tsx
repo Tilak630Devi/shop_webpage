@@ -1,112 +1,107 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
-import { Navbar } from "@/components/navigation/navbar"
-import { GlassCard } from "@/components/ui/glass-card"
-import { GradientButton } from "@/components/ui/gradient-button"
-import { BuyNowButton } from "@/components/ui/buy-now-button"
-import { ImageCarousel } from "@/components/ui/image-carousel"
-import { StarRating } from "@/components/ui/star-rating"
-import { FloatingInput } from "@/components/ui/floating-input"
-import { productsApi, commentsApi } from "@/lib/api"
-import { useCart } from "@/hooks/use-cart"
-import { useAuth } from "@/contexts/auth-context"
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { Navbar } from "@/components/navigation/navbar";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { BuyNowButton } from "@/components/ui/buy-now-button";
+import { ImageCarousel } from "@/components/ui/image-carousel";
+import { StarRating } from "@/components/ui/star-rating";
+import { FloatingInput } from "@/components/ui/floating-input";
+import { productsApi, commentsApi } from "@/lib/api";
+import { useCart } from "@/hooks/use-cart";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Product {
-  _id: string
-  name: string
-  slug: string
-  image?: string       // single image
-  images?: string[]    // array of images
-  mrp: number
-  sellingPrice: number
-  category: string
-  description: string
-  stock: number
+  _id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  images?: string[];
+  mrp: number;
+  sellingPrice: number;
+  category: string;
+  description: string;
+  stock: number;
 }
 
 interface Comment {
-  _id: string
-  userPhone: string
-  text: string
-  rating?: number
-  createdAt: string
+  _id: string;
+  userPhone: string;
+  text: string;
+  rating?: number;
+  createdAt: string;
 }
 
 export default function ProductDetailPage() {
-  const params = useParams()
-  const slug = params.slug as string
+  const params = useParams();
+  const slug = params.slug as string;
 
-  const [product, setProduct] = useState<Product | null>(null)
-  const [comments, setComments] = useState<Comment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [quantity, setQuantity] = useState(1)
-  const [newComment, setNewComment] = useState("")
-  const [newRating, setNewRating] = useState(5)
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [product, setProduct] = useState<Product | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [newComment, setNewComment] = useState("");
+  const [newRating, setNewRating] = useState(5);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
-  const { addToCart } = useCart()
-  const { isAuthenticated } = useAuth()
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true);
         const [productResponse, commentsResponse] = await Promise.all([
           productsApi.getBySlug(slug),
           commentsApi.list(slug, { limit: 10 }),
-        ])
-        setProduct(productResponse)
-        setComments(commentsResponse.items)
+        ]);
+        setProduct(productResponse);
+        setComments(commentsResponse.items);
       } catch (error) {
-        console.error("Failed to fetch product data:", error)
+        console.error("Failed to fetch product data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    if (slug) {
-      fetchData()
-    }
-  }, [slug])
+    if (slug) fetchData();
+  }, [slug]);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      window.location.href = "/auth/login"
-      return
+      window.location.href = "/auth/login";
+      return;
     }
-
-    if (!product) return
-
+    if (!product) return;
     try {
-      await addToCart(product._id, quantity)
+      await addToCart(product._id, quantity);
     } catch (error) {
-      console.error("Failed to add to cart:", error)
+      console.error("Failed to add to cart:", error);
     }
-  }
+  };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!isAuthenticated || !newComment.trim()) return
-
+    e.preventDefault();
+    if (!isAuthenticated || !newComment.trim()) return;
     try {
-      setIsSubmittingComment(true)
+      setIsSubmittingComment(true);
       const comment = await commentsApi.create(slug, {
         text: newComment.trim(),
         rating: newRating,
-      })
-      setComments([comment, ...comments])
-      setNewComment("")
-      setNewRating(5)
+      });
+      setComments([comment, ...comments]);
+      setNewComment("");
+      setNewRating(5);
     } catch (error) {
-      console.error("Failed to submit comment:", error)
+      console.error("Failed to submit comment:", error);
     } finally {
-      setIsSubmittingComment(false)
+      setIsSubmittingComment(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -125,7 +120,7 @@ export default function ProductDetailPage() {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   if (!product) {
@@ -139,11 +134,13 @@ export default function ProductDetailPage() {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   const averageRating =
-    comments.length > 0 ? comments.reduce((sum, comment) => sum + (comment.rating || 0), 0) / comments.length : 0
+    comments.length > 0
+      ? comments.reduce((sum, comment) => sum + (comment.rating || 0), 0) / comments.length
+      : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100">
@@ -153,15 +150,14 @@ export default function ProductDetailPage() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Product Images */}
-            <div>
-              {/* Product Images */}
-              <div>
-                <ImageCarousel
-                  images={product.images?.length ? product.images : product.image ? [product.image] : []}
-                  alt={product.name}
-                />
-              </div>  
-            </div>
+        <div className="w-full h-full">
+          <ImageCarousel
+            images={product.images?.length ? product.images : product.image ? [product.image] : []}
+            alt={product.name}
+            className="w-full h-full object-contain !scale-100 !hover:scale-100 !transition-none"
+          />
+        </div>
+
 
             {/* Product Info */}
             <div>
@@ -174,7 +170,7 @@ export default function ProductDetailPage() {
 
                 <h1 className="text-3xl font-serif font-bold text-gray-800 mb-4">{product.name}</h1>
 
-                <div className="flex items-center space-x-4 mb-6">
+                <div className="flex flex-wrap items-center space-x-4 mb-6">
                   <div className="flex items-center space-x-2">
                     <span className="text-3xl font-bold text-gray-800">₹{product.sellingPrice}</span>
                     {product.mrp > product.sellingPrice && (
@@ -227,15 +223,15 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   <GradientButton
                     onClick={handleAddToCart}
                     disabled={product.stock === 0}
-                    className="w-full py-4 text-lg ripple"
+                    className="w-full md:w-auto py-4 text-lg"
                   >
                     Add to Cart
                   </GradientButton>
-                  <BuyNowButton productId={product._id} quantity={quantity} className="w-full py-4 text-lg">
+                  <BuyNowButton productId={product._id} quantity={quantity} className="w-full md:w-auto py-4 text-lg">
                     Buy Now
                   </BuyNowButton>
                 </div>
@@ -311,5 +307,5 @@ export default function ProductDetailPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

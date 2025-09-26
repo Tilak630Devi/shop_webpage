@@ -2,7 +2,9 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { tokenStorage, authApi, ApiError } from "@/lib/api"
+  // @ts-ignore
+import Cookies from "js-cookie"
+import { authApi, ApiError } from "@/lib/api"
 
 interface User {
   phone: string
@@ -30,16 +32,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = () => setError(null)
 
+  // Rehydrate auth state from cookies on mount
   useEffect(() => {
-    // Check for existing token on mount
-    const token = tokenStorage.get()
-    if (token) {
-      // In a real app, you'd validate the token with the server
-      // For now, we'll assume it's valid if it exists
-      setIsLoading(false)
-    } else {
-      setIsLoading(false)
+    const token = Cookies.get("token")
+    const userData = Cookies.get("user")
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch {
+        setUser(null)
+        Cookies.remove("token")
+        Cookies.remove("user")
+      }
     }
+    setIsLoading(false)
   }, [])
 
   const login = async (phone: string) => {
@@ -47,7 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true)
       setError(null)
       const response = await authApi.login({ phone })
-      tokenStorage.set(response.token)
+
+      // Set cookies for persistence (7 days)
+      Cookies.set("token", response.token, { expires: 30 })
+      Cookies.set("user", JSON.stringify(response.user), { expires: 30 })
+
       setUser(response.user)
     } catch (err) {
       if (err instanceof ApiError) {
@@ -66,7 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true)
       setError(null)
       const response = await authApi.signup(data)
-      tokenStorage.set(response.token)
+
+      // Set cookies for persistence (7 days)
+      Cookies.set("token", response.token, { expires: 7 })
+      Cookies.set("user", JSON.stringify(response.user), { expires: 7 })
+
       setUser(response.user)
     } catch (err) {
       if (err instanceof ApiError) {
@@ -81,7 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
-    tokenStorage.remove()
+    Cookies.remove("token")
+    Cookies.remove("user")
     setUser(null)
     setError(null)
   }

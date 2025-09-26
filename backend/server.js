@@ -32,7 +32,7 @@ const DB_NAME = process.env.DB_NAME || 'shopDB';
 const ADMIN_JWT_SECRET = requiredEnv('ADMIN_JWT_SECRET');
 const USER_JWT_SECRET = requiredEnv('USER_JWT_SECRET');
 const SHOP_WHATSAPP_NUMBER = requiredEnv('SHOP_WHATSAPP_NUMBER');
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const CORS_ORIGIN = process.env.CORS_ORIGIN;
 
 // ------------------------------
 // App & Security

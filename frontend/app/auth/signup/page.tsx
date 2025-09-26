@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -68,10 +67,11 @@ export default function SignupPage() {
     }
 
     try {
+      // signup now sets cookies for persistent login
       await signup(formData)
-      router.push("/")
+      router.push("/") // redirect after successful signup
     } catch (err) {
-      // Error is handled by the auth context
+      // errors are handled by the auth context
     }
   }
 
@@ -105,7 +105,7 @@ export default function SignupPage() {
       <div className="relative w-full max-w-lg">
         <GlassCard className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-serif font-bold gradient-text-pink mb-2">Join Glamour Shop</h1>
+            <h1 className="text-3xl font-serif font-bold gradient-text-pink mb-2">Join <br /> AAVRA GENERAL</h1>
             <p className="text-gray-600">Create your account to start shopping</p>
           </div>
 

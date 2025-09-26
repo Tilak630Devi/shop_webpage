@@ -60,10 +60,6 @@ export default function AdminLoginPage() {
               Sign In
             </GradientButton>
           </form>
-
-          <div className="mt-8 text-center">
-            <p className="text-xs text-gray-500">Default credentials: admin / admin</p>
-          </div>
         </GlassCard>
       </div>
     </div>

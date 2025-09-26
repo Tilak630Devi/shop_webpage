@@ -55,7 +55,7 @@ export default function AboutPage() {
               <GlassCard className="p-6 text-center space-y-2">
                 <h3 className="font-semibold text-pink-600">Instagram</h3>  
                 <a
-                  href="https://www.instagram.com/no_edits12x"
+                  href="https://www.instagram.com/makeupstore_by_aavra"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-700 hover:underline"

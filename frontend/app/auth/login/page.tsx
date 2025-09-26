@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -16,6 +15,7 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("")
   const [validationError, setValidationError] = useState("")
 
+  // Validate 10-digit phone numbers
   const validatePhone = (phone: string) => {
     const phoneRegex = /^\d{10}$/
     return phoneRegex.test(phone)
@@ -32,10 +32,11 @@ export default function LoginPage() {
     }
 
     try {
+      // login from auth-context now sets cookies internally
       await login(phone)
-      router.push("/")
+      router.push("/") // redirect after successful login
     } catch (err) {
-      // Error is handled by the auth context
+      // errors are handled by the auth context
     }
   }
 

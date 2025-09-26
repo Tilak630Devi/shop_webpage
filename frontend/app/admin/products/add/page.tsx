@@ -10,12 +10,11 @@ export default function AddProductPage() {
   const router = useRouter();
   const { getToken } = useAdmin();
 
-  // UI state
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     description: "",
-    image: "", // UI only, converted to images[] on submit
+    image: "",
     mrp: 0,
     sellingPrice: 0,
     slug: "",
@@ -25,7 +24,6 @@ export default function AddProductPage() {
 
   const [loading, setLoading] = useState(false);
 
-  // Handle input updates
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -36,19 +34,12 @@ export default function AddProductPage() {
     }));
   };
 
-  // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const token = getToken();
-
-      // Convert `image` (string) -> `images` (array)
-      const payload = {
-        ...formData,
-        image: formData.image || "",
-      };
-
+      const payload = { ...formData, image: formData.image || "" };
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/admin/products`,
         {
@@ -81,7 +72,7 @@ export default function AddProductPage() {
           </h1>
           <form
             onSubmit={handleSubmit}
-            className="bg-white/70 backdrop-blur-lg shadow-xl rounded-2xl p-8 border border-gray-200 space-y-6"
+            className="bg-white/70 backdrop-blur-lg shadow-xl rounded-2xl p-6 sm:p-8 border border-gray-200 space-y-6"
           >
             {/* Name */}
             <div>
@@ -128,29 +119,33 @@ export default function AddProductPage() {
             </div>
 
             {/* Image */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Image URL
-              </label>
-              <input
-                type="url"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm"
-              />
-              {formData.image && (
-                <img
-                  src={formData.image}
-                  alt="Preview"
-                  className="mt-4 w-32 h-32 object-cover rounded-lg border"
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  name="image"
+                  value={formData.image}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm"
                 />
+              </div>
+              {formData.image && (
+                <div className="mt-4 sm:mt-0 flex-shrink-0">
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded-lg border"
+                  />
+                </div>
               )}
             </div>
 
             {/* Prices */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   MRP
@@ -216,16 +211,11 @@ export default function AddProductPage() {
                 name="visible"
                 checked={formData.visible}
                 onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    visible: e.target.checked,
-                  }))
+                  setFormData((prev) => ({ ...prev, visible: e.target.checked }))
                 }
                 className="h-4 w-4 text-pink-600 border-gray-300 rounded"
               />
-              <label className="ml-2 block text-sm text-gray-700">
-                Visible
-              </label>
+              <label className="ml-2 block text-sm text-gray-700">Visible</label>
             </div>
 
             <GradientButton type="submit" className="w-full">

@@ -27,6 +27,7 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
+  // Fetch existing product details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -58,16 +59,23 @@ export default function EditProductPage() {
     fetchProduct();
   }, [params.id, getToken]);
 
+  // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? Number(value) : value,
+      [name]:
+        type === "number"
+          ? value === ""
+            ? 0
+            : Number(value)
+          : value,
     }));
   };
 
+  // Submit update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -82,10 +90,12 @@ export default function EditProductPage() {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error("Failed to update product");
+
+      alert("✅ Product updated successfully!");
       router.push("/admin/products");
     } catch (err) {
       console.error(err);
-      alert("Error updating product");
+      alert("❌ Error updating product");
     } finally {
       setLoading(false);
     }
@@ -111,7 +121,6 @@ export default function EditProductPage() {
           <form
             onSubmit={handleSubmit}
             className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-6 sm:p-8 border border-gray-200 space-y-6"
-            suppressHydrationWarning
           >
             {/* Name */}
             <div>
@@ -253,9 +262,7 @@ export default function EditProductPage() {
                 }
                 className="h-4 w-4 text-pink-600 border-gray-300 rounded"
               />
-              <label className="ml-2 block text-sm text-gray-700">
-                Visible
-              </label>
+              <label className="ml-2 block text-sm text-gray-700">Visible</label>
             </div>
 
             <GradientButton type="submit" className="w-full">

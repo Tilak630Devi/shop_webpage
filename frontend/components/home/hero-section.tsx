@@ -58,6 +58,8 @@ export function HeroSection() {
       <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         {/* Title */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold mb-6 leading-tight drop-shadow-md">
+          {" "}
+          <br /> <br />
           <span className="block bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-400 bg-clip-text text-transparent animate-fade-in">
             AAVRA GENERAL
           </span>
@@ -160,6 +162,7 @@ export function HeroSection() {
             </div>
           ))}
         </div>
+        <div className="h-20"></div>  {/* Adjust height as needed */}
       </div>
     </section>
   );
